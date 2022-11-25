@@ -18,7 +18,7 @@ export class MemphisConvertProducerService implements OnModuleInit,OnApplication
 
     async convertProducerConnection(){
         this.convertProducerChannelOne=await this.memphisConnection.producer({
-            stationName: 'final_convert_pricing',
+            stationName: 'convert',
             producerName: "convert_producer_channel_one"
         });
 
@@ -26,7 +26,7 @@ export class MemphisConvertProducerService implements OnModuleInit,OnApplication
 
         async convertProducerConnectionChannelTwo(){
             this.convertProducerChannelTwo=await this.memphisConnection.producer({
-                stationName: 'final_convert_pricing',
+                stationName: 'convert',
                 producerName: "convert_producer_channel_two"
             });
     
@@ -34,7 +34,7 @@ export class MemphisConvertProducerService implements OnModuleInit,OnApplication
        
             async convertProducerConnectionChannelThree(){
                 this.convertProducerChannelThree=await this.memphisConnection.producer({
-                    stationName: 'final_convert_pricing',
+                    stationName: 'convert',
                     producerName: "convert_producer_channel_three"
                 });
         

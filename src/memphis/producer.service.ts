@@ -17,21 +17,21 @@ export class MemphisProducerService implements OnModuleInit,OnApplicationShutdow
 
     async otcProducerConnection(){
     this.otcProducerChannelOne=await this.memphisConnection.producer({
-    stationName: 'final_otc_pricing',
+    stationName: 'otc',
     producerName: 'otc_producer_channel_one'
     });
     }
 
     async otcProducerConnectionChannelTwo(){
         this.otcProducerChannelTwo=await this.memphisConnection.producer({
-        stationName: 'final_otc_pricing',
+        stationName: 'otc',
         producerName: 'otc_producer_channel_two'
         });
     }
     
         async otcProducerConnectionChannelThree(){
             this.otcProducerChannelThree=await this.memphisConnection.producer({
-            stationName: 'final_otc_pricing',
+            stationName: 'otc',
             producerName: 'otc_producer_channel_three'
             });
         }
