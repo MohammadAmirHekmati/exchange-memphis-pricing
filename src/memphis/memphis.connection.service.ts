@@ -7,7 +7,8 @@ export const MemphisConnection:Provider={
         const client=await memphis.connect({
             host: '192.168.10.200',
             username: 'hampa',
-            connectionToken: 'memphis'
+            connectionToken: 'memphis',
+            reconnect:true
         }); 
         return client 
     }

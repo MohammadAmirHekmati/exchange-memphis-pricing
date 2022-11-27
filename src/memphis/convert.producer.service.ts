@@ -9,63 +9,70 @@ export class MemphisConvertProducerService implements OnModuleInit,OnApplication
     convertProducerChannelOne:Producer
     convertProducerChannelTwo:Producer
     convertProducerChannelThree:Producer
+    convertProducerChannelFour:Producer
     async onModuleInit() {
        await this.convertProducerConnection()
        await this.convertProducerConnectionChannelTwo()
        await this.convertProducerConnectionChannelThree()
+       await this.convertProducerConnectionChannelFour()
     }
 
 
     async convertProducerConnection(){
         this.convertProducerChannelOne=await this.memphisConnection.producer({
-            stationName: 'convert',
-            producerName: "convert_producer_channel_one"
+            stationName: 'convert_channel_one',
+            producerName: "convert_channel_one"
         });
 
     }
 
         async convertProducerConnectionChannelTwo(){
             this.convertProducerChannelTwo=await this.memphisConnection.producer({
-                stationName: 'convert',
-                producerName: "convert_producer_channel_two"
+                stationName: 'convert_channel_two',
+                producerName: "convert_channel_two"
             });
     
         }
        
             async convertProducerConnectionChannelThree(){
                 this.convertProducerChannelThree=await this.memphisConnection.producer({
-                    stationName: 'convert',
-                    producerName: "convert_producer_channel_three"
+                    stationName: 'convert_channel_three',
+                    producerName: "convert_channel_three"
+                });
+        
+            }
+
+            async convertProducerConnectionChannelFour(){
+                this.convertProducerChannelFour=await this.memphisConnection.producer({
+                    stationName: 'convert_channel_four',
+                    producerName: "four"
                 });
         
             }
                
            async produceConvert(message:ConvertPriceDto){
-                const headers = memphis.headers()
-                headers.add('key', 'value');
                 await this.convertProducerChannelOne.produce({
-                    message: Buffer.from(JSON.stringify(message)),
-                    headers: headers
+                    message: Buffer.from(JSON.stringify(message))
                 });
            }
 
        async produceConvertChannelTwo(message:ConvertPriceDto){
-            const headers = memphis.headers()
-            headers.add('key', 'value');
             await this.convertProducerChannelTwo.produce({
                 message: Buffer.from(JSON.stringify(message)),
-                headers: headers
             });
        }
 
    async produceConvertChannelThree(message:ConvertPriceDto){
-        const headers = memphis.headers()
-        headers.add('key', 'value');
         await this.convertProducerChannelThree.produce({
-            message: Buffer.from(JSON.stringify(message)),
-            headers: headers
+            message: Buffer.from(JSON.stringify(message))
         });
    }
+
+   async produceConvertChannelFour(message:ConvertPriceDto){
+    await this.convertProducerChannelFour.produce({
+        message: Buffer.from(JSON.stringify(message)),
+    });
+}
             
            onApplicationShutdown(signal?: string) {
             this.memphisConnection.close();

@@ -18,6 +18,7 @@ var WebSocketClient = require('websocket').w3cwebsocket;
 
 @Injectable()
 export class CryptoPricingService implements OnModuleInit{
+  cryptoManual
     constructor(private redisService:RedisService,
       private memphisProducerService:MemphisProducerService,
       private memphisConvertProducer:MemphisConvertProducerService,
@@ -40,6 +41,7 @@ export class CryptoPricingService implements OnModuleInit{
        let finalBinanceChannelOne=[]
        let finalBinanceChannelTwo=[]
        let finalBinanceChannelThree=[]
+       let finalBinanceChannelFour=[]
        const pattern=`*${this.PREFIX_PRICE_EXCHANGE_CRYPTO}*`
        const findALlKeys=await this.redisService.multiGet(pattern)
        for (const key of findALlKeys) {
@@ -55,6 +57,8 @@ export class CryptoPricingService implements OnModuleInit{
              finalBinanceChannelTwo.push(`${fromCrypto.symbol_crypto.toLowerCase()}${subscribe}`)
            if (fromCrypto.crypto_socket == PriceStatusEnum.CHANNEL_3)
              finalBinanceChannelThree.push(`${fromCrypto.symbol_crypto.toLowerCase()}${subscribe}`)
+             if (fromCrypto.crypto_socket == PriceStatusEnum.CHANNEL_4)
+             finalBinanceChannelThree.push(`${fromCrypto.symbol_crypto.toLowerCase()}${subscribe}`)
          }
    
          if(toCrypto)
@@ -65,6 +69,8 @@ export class CryptoPricingService implements OnModuleInit{
              finalBinanceChannelTwo.push(`${toCrypto.symbol_crypto.toLowerCase()}${subscribe}`)
            if (toCrypto.crypto_socket == PriceStatusEnum.CHANNEL_3)
              finalBinanceChannelThree.push(`${toCrypto.symbol_crypto.toLowerCase()}${subscribe}`)
+             if (toCrypto.crypto_socket == PriceStatusEnum.CHANNEL_4)
+             finalBinanceChannelThree.push(`${toCrypto.symbol_crypto.toLowerCase()}${subscribe}`)
          }
 
 
@@ -72,6 +78,7 @@ export class CryptoPricingService implements OnModuleInit{
        finalBinanceChannelOne=[...new Set(finalBinanceChannelOne)]
        finalBinanceChannelTwo=[...new Set(finalBinanceChannelTwo)]
        finalBinanceChannelThree=[...new Set(finalBinanceChannelThree)]
+       finalBinanceChannelFour=[...new Set(finalBinanceChannelFour)]
 
     const channelOne=new WebSocketClient(`wss://stream.binance.com:9443/stream?streams=${finalBinanceChannelOne.join("/")}`)
       channelOne.onmessage=async (e)=>{
@@ -135,6 +142,27 @@ export class CryptoPricingService implements OnModuleInit{
            await this.redisService.setKey(exchangeOfRedis,JSON.stringify(findedExchangeDto),-1)
          }
       }
+
+      const channelFour=new WebSocketClient(`wss://stream.binance.com:9443/stream?streams=${finalBinanceChannelFour.join("/")}`)
+      channelFour.onmessage=async (e)=>{
+      const parsedJson=JSON.parse(e.data)
+      const tradeBinanceDto : CandleBinanceDto =  new CandleBinanceDto(parsedJson)
+         const symbolSocket = tradeBinanceDto.symbol_event.substring(0 , tradeBinanceDto.symbol_event.length-4).toLowerCase()
+         const pattern=`${this.PREFIX_PRICE_EXCHANGE_CRYPTO}*${symbolSocket}*`
+         const getExchangeOfRedis=await this.redisService.multiGet(pattern)
+         for (const exchangeOfRedis of getExchangeOfRedis) {
+           const findedExchangeDto=<RedisExchangeDto>await this.redisService.getKey(exchangeOfRedis)
+           findedExchangeDto.from_crypto==symbolSocket?findedExchangeDto.from_price=tradeBinanceDto.price:findedExchangeDto.to_price=tradeBinanceDto.price
+           findedExchangeDto.time=Date.now().toString()
+           if (findedExchangeDto.exchange_type.includes(ExchangeTypeEnum.OTC))
+            await this.sendToAllPriceCryptoOtc(findedExchangeDto)
+     
+           if (findedExchangeDto.exchange_type.includes(ExchangeTypeEnum.CONVERT))
+             await this.sendToAllPriceCryptoConvert(findedExchangeDto)
+     
+           await this.redisService.setKey(exchangeOfRedis,JSON.stringify(findedExchangeDto),-1)
+         }
+      }
       
 
       } catch (error) {
@@ -173,7 +201,12 @@ export class CryptoPricingService implements OnModuleInit{
                       case PriceStatusEnum.CHANNEL_3:
                       await this.memphisProducerService.produceOtcChannelThree(priceSendToAllRQ)
                       break;
+
+                      case PriceStatusEnum.CHANNEL_4:
+                        await this.memphisProducerService.produceOtcChannelFour(priceSendToAllRQ)
+                      break;
                   }
+                  
                 }
             } catch (e) {
               console.log("-------- exchnage otc ------")
@@ -207,6 +240,10 @@ export class CryptoPricingService implements OnModuleInit{
                       
                       case PriceStatusEnum.CHANNEL_3:
                       await this.memphisConvertProducer.produceConvertChannelThree(convertPriceDto)
+                      break;
+
+                      case PriceStatusEnum.CHANNEL_4:
+                        await this.memphisConvertProducer.produceConvertChannelFour(convertPriceDto)
                       break;
                   }
             } catch (e) { 
