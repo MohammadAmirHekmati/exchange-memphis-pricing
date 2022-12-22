@@ -18,7 +18,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "pm2:attach": "pm2 start ./ecosystem.config.js --attach",
+    "pm2:start": "concurrently \"npm run build\" \"npm run pm2:attach\""
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",
@@ -26,8 +28,12 @@
     "@nestjs/platform-express": "^9.0.0",
     "@nestjs/schedule": "^2.1.0",
     "axios": "^1.2.0",
+    "cache-manager": "^4.0.0",
+    "cache-manager-ioredis": "^2.1.0",
+    "ioredis": "^5.2.4",
     "js-big-decimal": "^1.3.12",
     "memphis-dev": "^0.4.5",
+    "pm2": "^5.2.2",
     "redis": "^4.5.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
@@ -47,6 +53,7 @@
     "@types/ws": "^8.5.3",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
+    "concurrently": "^7.6.0",
     "eslint": "^8.0.1",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",

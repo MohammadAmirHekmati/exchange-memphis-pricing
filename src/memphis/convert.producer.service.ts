@@ -11,17 +11,17 @@ export class MemphisConvertProducerService implements OnModuleInit,OnApplication
     convertProducerChannelThree:Producer
     convertProducerChannelFour:Producer
     async onModuleInit() {
-       await this.convertProducerConnection()
-       await this.convertProducerConnectionChannelTwo()
-       await this.convertProducerConnectionChannelThree()
-       await this.convertProducerConnectionChannelFour()
+    //    await this.convertProducerConnection()
+    //    await this.convertProducerConnectionChannelTwo()
+    //    await this.convertProducerConnectionChannelThree()
+    //    await this.convertProducerConnectionChannelFour()
     }
 
 
     async convertProducerConnection(){
         this.convertProducerChannelOne=await this.memphisConnection.producer({
             stationName: 'convert_channel_one',
-            producerName: "convert_channel_one"
+            producerName: "one_pro_final"
         });
 
     }
@@ -29,7 +29,7 @@ export class MemphisConvertProducerService implements OnModuleInit,OnApplication
         async convertProducerConnectionChannelTwo(){
             this.convertProducerChannelTwo=await this.memphisConnection.producer({
                 stationName: 'convert_channel_two',
-                producerName: "convert_channel_two"
+                producerName: "two_pro_final"
             });
     
         }
@@ -37,7 +37,7 @@ export class MemphisConvertProducerService implements OnModuleInit,OnApplication
             async convertProducerConnectionChannelThree(){
                 this.convertProducerChannelThree=await this.memphisConnection.producer({
                     stationName: 'convert_channel_three',
-                    producerName: "convert_channel_three"
+                    producerName: "three_pro_final"
                 });
         
             }
@@ -45,7 +45,7 @@ export class MemphisConvertProducerService implements OnModuleInit,OnApplication
             async convertProducerConnectionChannelFour(){
                 this.convertProducerChannelFour=await this.memphisConnection.producer({
                     stationName: 'convert_channel_four',
-                    producerName: "four"
+                    producerName: "four_pro_final"
                 });
         
             }

@@ -14,12 +14,15 @@ import { ExchangeTypeEnum } from "./enums/exchange.type.enum";
 import { GlobalService } from "../global/global.service";
 import { MemphisProducerService } from "src/memphis/producer.service";
 import { MemphisConvertProducerService } from "src/memphis/convert.producer.service";
+import { RedisPlusService } from "src/redis/redis-plus.service";
+import { sample } from "rxjs";
+import { RedisOriginService } from "src/origin-redis/redis.origin.service";
 var WebSocketClient = require('websocket').w3cwebsocket;
 
 @Injectable()
 export class CryptoPricingService implements OnModuleInit{
   cryptoManual
-    constructor(private redisService:RedisService,
+    constructor(private redisService:RedisOriginService,
       private memphisProducerService:MemphisProducerService,
       private memphisConvertProducer:MemphisConvertProducerService,
       private globalService:GlobalService){
@@ -43,7 +46,7 @@ export class CryptoPricingService implements OnModuleInit{
        let finalBinanceChannelThree=[]
        let finalBinanceChannelFour=[]
        const pattern=`*${this.PREFIX_PRICE_EXCHANGE_CRYPTO}*`
-       const findALlKeys=await this.redisService.multiGet(pattern)
+       const findALlKeys=await this.redisService.multiGetKeys(pattern)
        for (const key of findALlKeys) {
         const findedExchangeDto=<RedisExchangeDto>await this.redisService.getKey(key)
         
@@ -58,7 +61,7 @@ export class CryptoPricingService implements OnModuleInit{
            if (fromCrypto.crypto_socket == PriceStatusEnum.CHANNEL_3)
              finalBinanceChannelThree.push(`${fromCrypto.symbol_crypto.toLowerCase()}${subscribe}`)
              if (fromCrypto.crypto_socket == PriceStatusEnum.CHANNEL_4)
-             finalBinanceChannelThree.push(`${fromCrypto.symbol_crypto.toLowerCase()}${subscribe}`)
+             finalBinanceChannelFour.push(`${fromCrypto.symbol_crypto.toLowerCase()}${subscribe}`)
          }
    
          if(toCrypto)
@@ -70,7 +73,7 @@ export class CryptoPricingService implements OnModuleInit{
            if (toCrypto.crypto_socket == PriceStatusEnum.CHANNEL_3)
              finalBinanceChannelThree.push(`${toCrypto.symbol_crypto.toLowerCase()}${subscribe}`)
              if (toCrypto.crypto_socket == PriceStatusEnum.CHANNEL_4)
-             finalBinanceChannelThree.push(`${toCrypto.symbol_crypto.toLowerCase()}${subscribe}`)
+             finalBinanceChannelFour.push(`${toCrypto.symbol_crypto.toLowerCase()}${subscribe}`)
          }
 
 
@@ -86,7 +89,7 @@ export class CryptoPricingService implements OnModuleInit{
       const tradeBinanceDto : CandleBinanceDto =  new CandleBinanceDto(parsedJson)
          const symbolSocket = tradeBinanceDto.symbol_event.substring(0 , tradeBinanceDto.symbol_event.length-4).toLowerCase()
          const pattern=`${this.PREFIX_PRICE_EXCHANGE_CRYPTO}*${symbolSocket}*`
-         const getExchangeOfRedis=await this.redisService.multiGet(pattern)
+         const getExchangeOfRedis=await this.redisService.multiGetKeys(pattern)
          for (const exchangeOfRedis of getExchangeOfRedis) {
            const findedExchangeDto=<RedisExchangeDto>await this.redisService.getKey(exchangeOfRedis)
            findedExchangeDto.from_crypto==symbolSocket?findedExchangeDto.from_price=tradeBinanceDto.price:findedExchangeDto.to_price=tradeBinanceDto.price
@@ -97,7 +100,7 @@ export class CryptoPricingService implements OnModuleInit{
            if (findedExchangeDto.exchange_type.includes(ExchangeTypeEnum.CONVERT))
              await this.sendToAllPriceCryptoConvert(findedExchangeDto)
      
-           await this.redisService.setKey(exchangeOfRedis,JSON.stringify(findedExchangeDto),-1)
+           await this.redisService.setKey(exchangeOfRedis,JSON.stringify(findedExchangeDto),0)
          }
       }
 
@@ -107,7 +110,7 @@ export class CryptoPricingService implements OnModuleInit{
       const tradeBinanceDto : CandleBinanceDto =  new CandleBinanceDto(parsedJson)
          const symbolSocket = tradeBinanceDto.symbol_event.substring(0 , tradeBinanceDto.symbol_event.length-4).toLowerCase()
          const pattern=`${this.PREFIX_PRICE_EXCHANGE_CRYPTO}*${symbolSocket}*`
-         const getExchangeOfRedis=await this.redisService.multiGet(pattern)
+         const getExchangeOfRedis=await this.redisService.multiGetKeys(pattern)
          for (const exchangeOfRedis of getExchangeOfRedis) {
            const findedExchangeDto=<RedisExchangeDto>await this.redisService.getKey(exchangeOfRedis)
            findedExchangeDto.from_crypto==symbolSocket?findedExchangeDto.from_price=tradeBinanceDto.price:findedExchangeDto.to_price=tradeBinanceDto.price
@@ -118,7 +121,7 @@ export class CryptoPricingService implements OnModuleInit{
            if (findedExchangeDto.exchange_type.includes(ExchangeTypeEnum.CONVERT))
              await this.sendToAllPriceCryptoConvert(findedExchangeDto)
      
-           await this.redisService.setKey(exchangeOfRedis,JSON.stringify(findedExchangeDto),-1)
+           await this.redisService.setKey(exchangeOfRedis,JSON.stringify(findedExchangeDto),0)
          }
       }
 
@@ -128,7 +131,7 @@ export class CryptoPricingService implements OnModuleInit{
       const tradeBinanceDto : CandleBinanceDto =  new CandleBinanceDto(parsedJson)
          const symbolSocket = tradeBinanceDto.symbol_event.substring(0 , tradeBinanceDto.symbol_event.length-4).toLowerCase()
          const pattern=`${this.PREFIX_PRICE_EXCHANGE_CRYPTO}*${symbolSocket}*`
-         const getExchangeOfRedis=await this.redisService.multiGet(pattern)
+         const getExchangeOfRedis=await this.redisService.multiGetKeys(pattern)
          for (const exchangeOfRedis of getExchangeOfRedis) {
            const findedExchangeDto=<RedisExchangeDto>await this.redisService.getKey(exchangeOfRedis)
            findedExchangeDto.from_crypto==symbolSocket?findedExchangeDto.from_price=tradeBinanceDto.price:findedExchangeDto.to_price=tradeBinanceDto.price
@@ -139,7 +142,7 @@ export class CryptoPricingService implements OnModuleInit{
            if (findedExchangeDto.exchange_type.includes(ExchangeTypeEnum.CONVERT))
              await this.sendToAllPriceCryptoConvert(findedExchangeDto)
      
-           await this.redisService.setKey(exchangeOfRedis,JSON.stringify(findedExchangeDto),-1)
+           await this.redisService.setKey(exchangeOfRedis,JSON.stringify(findedExchangeDto),0)
          }
       }
 
@@ -149,7 +152,7 @@ export class CryptoPricingService implements OnModuleInit{
       const tradeBinanceDto : CandleBinanceDto =  new CandleBinanceDto(parsedJson)
          const symbolSocket = tradeBinanceDto.symbol_event.substring(0 , tradeBinanceDto.symbol_event.length-4).toLowerCase()
          const pattern=`${this.PREFIX_PRICE_EXCHANGE_CRYPTO}*${symbolSocket}*`
-         const getExchangeOfRedis=await this.redisService.multiGet(pattern)
+         const getExchangeOfRedis=await this.redisService.multiGetKeys(pattern)
          for (const exchangeOfRedis of getExchangeOfRedis) {
            const findedExchangeDto=<RedisExchangeDto>await this.redisService.getKey(exchangeOfRedis)
            findedExchangeDto.from_crypto==symbolSocket?findedExchangeDto.from_price=tradeBinanceDto.price:findedExchangeDto.to_price=tradeBinanceDto.price
@@ -160,7 +163,7 @@ export class CryptoPricingService implements OnModuleInit{
            if (findedExchangeDto.exchange_type.includes(ExchangeTypeEnum.CONVERT))
              await this.sendToAllPriceCryptoConvert(findedExchangeDto)
      
-           await this.redisService.setKey(exchangeOfRedis,JSON.stringify(findedExchangeDto),-1)
+           await this.redisService.setKey(exchangeOfRedis,JSON.stringify(findedExchangeDto),0)
          }
       }
       
@@ -173,37 +176,46 @@ export class CryptoPricingService implements OnModuleInit{
       async sendToAllPriceCryptoOtc(redisPrice:RedisExchangeDto)
           {
             try {
+              const priceSendToAllRQ: PriceSendToAllRQ = {
+                from: redisPrice.from_crypto,
+                to: redisPrice.to_crypto,
+                from_decimal: redisPrice.from_decimal,
+                to_decimal: redisPrice.to_decimal,
+                channel: redisPrice.channel
+              }
                 if (redisPrice.from_price != '0' && redisPrice.to_price != '0') {
+                  let percentBuyFinal:string
+                  let percentSellFinal:string
                   const equal = PublicFunc.divide(bigDecimal.divide(redisPrice.from_price, redisPrice.to_price, 18), Number(redisPrice.to_decimal))
-                  const percentSale = bigDecimal.divide(redisPrice.equal_sale, 100, 2)
-                  const percentBuy = bigDecimal.divide(redisPrice.equal_buy, 100, 2)
-                  const buy = PublicFunc.divide(bigDecimal.add(equal, bigDecimal.multiply(equal, percentSale)), Number(redisPrice.to_decimal))
-                  const sale = PublicFunc.divide(bigDecimal.add(equal, bigDecimal.negate(bigDecimal.multiply(equal, percentBuy)))
-                      , Number(redisPrice.to_decimal))
-                  const priceSendToAllRQ: PriceSendToAllRQ = {
-                    from: redisPrice.from_crypto,
-                    to: redisPrice.to_crypto,
-                    buy_from_exchange: buy,
-                    sale_to_exchange: sale,
-                    from_decimal: redisPrice.from_decimal,
-                    to_decimal: redisPrice.to_decimal,
-                    channel: redisPrice.channel
+                  if(redisPrice.equal_sale!=="0")
+                  {
+                    const percentBuy = bigDecimal.divide(redisPrice.equal_buy, 100, 2)
+                    const buy = PublicFunc.divide(bigDecimal.add(equal, bigDecimal.multiply(equal, percentBuy)), Number(redisPrice.to_decimal))
+                    percentSellFinal=buy
                   }
+                  if(redisPrice.equal_buy!=="0")
+                  {  
+                    const percentSale = bigDecimal.divide(redisPrice.equal_sale, 100, 2)
+                    const sale = PublicFunc.divide(bigDecimal.add(equal, bigDecimal.negate(bigDecimal.multiply(equal, percentSale))), Number(redisPrice.to_decimal))
+                    percentBuyFinal=sale
+                  }
+                  percentBuyFinal?priceSendToAllRQ.sale_to_exchange=percentBuyFinal:priceSendToAllRQ.sale_to_exchange=equal
+                  percentSellFinal?priceSendToAllRQ.buy_from_exchange=percentSellFinal:priceSendToAllRQ.buy_from_exchange=equal
                   switch (priceSendToAllRQ.channel) {
                     case PriceStatusEnum.CHANNEL_1:
-                      await this.memphisProducerService.produceOtc(priceSendToAllRQ)
+                      // await this.memphisProducerService.produceOtc(priceSendToAllRQ)
                       break;
 
                       case PriceStatusEnum.CHANNEL_2:
-                      await this.memphisProducerService.produceOtcChannelTwo(priceSendToAllRQ)
+                      // await this.memphisProducerService.produceOtcChannelTwo(priceSendToAllRQ)
                       break;
 
                       case PriceStatusEnum.CHANNEL_3:
-                      await this.memphisProducerService.produceOtcChannelThree(priceSendToAllRQ)
+                      // await this.memphisProducerService.produceOtcChannelThree(priceSendToAllRQ)
                       break;
 
                       case PriceStatusEnum.CHANNEL_4:
-                        await this.memphisProducerService.produceOtcChannelFour(priceSendToAllRQ)
+                        // await this.memphisProducerService.produceOtcChannelFour(priceSendToAllRQ)
                       break;
                   }
                   
@@ -211,13 +223,15 @@ export class CryptoPricingService implements OnModuleInit{
             } catch (e) {
               console.log("-------- exchnage otc ------")
               console.log(e)
+                process.exit()
             }
           }
         
          async sendToAllPriceCryptoConvert(redisExchangeDto:RedisExchangeDto)
           {
             try {
-                const cryptoPriceIrr = bigDecimal.divide(redisExchangeDto.from_price, redisExchangeDto.to_price, redisExchangeDto.to_decimal)
+              if(redisExchangeDto.convert_wage!=="0")
+                {const cryptoPriceIrr = bigDecimal.divide(redisExchangeDto.from_price, redisExchangeDto.to_price, redisExchangeDto.to_decimal)
         
                 const multiplyPercent = bigDecimal.multiply(cryptoPriceIrr, redisExchangeDto.convert_wage)
                 const feeAmount = bigDecimal.divide(multiplyPercent, 100, redisExchangeDto.from_decimal)
@@ -231,24 +245,52 @@ export class CryptoPricingService implements OnModuleInit{
                 }
                 switch (convertPriceDto.channel) {
                     case PriceStatusEnum.CHANNEL_1:
-                      await this.memphisConvertProducer.produceConvert(convertPriceDto)
+                      // await this.memphisConvertProducer.produceConvert(convertPriceDto)
                       break;
 
                       case PriceStatusEnum.CHANNEL_2:
-                      await this.memphisConvertProducer.produceConvertChannelTwo(convertPriceDto)
+                      // await this.memphisConvertProducer.produceConvertChannelTwo(convertPriceDto)
                       break;
                       
                       case PriceStatusEnum.CHANNEL_3:
-                      await this.memphisConvertProducer.produceConvertChannelThree(convertPriceDto)
+                      // await this.memphisConvertProducer.produceConvertChannelThree(convertPriceDto)
                       break;
 
                       case PriceStatusEnum.CHANNEL_4:
-                        await this.memphisConvertProducer.produceConvertChannelFour(convertPriceDto)
+                        // await this.memphisConvertProducer.produceConvertChannelFour(convertPriceDto)
                       break;
+                  }}
+
+                  else if (redisExchangeDto.convert_wage=="0")
+                  {
+                    const cryptoPriceIrr = bigDecimal.divide(redisExchangeDto.from_price, redisExchangeDto.to_price, redisExchangeDto.to_decimal)
+                const convertPriceDto: ConvertPriceDto = {
+                  from_crypto: redisExchangeDto.from_crypto,
+                  rate: PublicFunc.divide(cryptoPriceIrr, Number(redisExchangeDto.to_decimal)),
+                  to_crypto: redisExchangeDto.to_crypto,
+                  channel: redisExchangeDto.channel
+                }
+                switch (convertPriceDto.channel) {
+                    case PriceStatusEnum.CHANNEL_1:
+                      // await this.memphisConvertProducer.produceConvert(convertPriceDto)
+                      break;
+
+                      case PriceStatusEnum.CHANNEL_2:
+                      // await this.memphisConvertProducer.produceConvertChannelTwo(convertPriceDto)
+                      break;
+                      
+                      case PriceStatusEnum.CHANNEL_3:
+                      // await this.memphisConvertProducer.produceConvertChannelThree(convertPriceDto)
+                      break;
+
+                      case PriceStatusEnum.CHANNEL_4:
+                        // await this.memphisConvertProducer.produceConvertChannelFour(convertPriceDto)
+                      break;
+                  }}
                   }
-            } catch (e) { 
+             catch (e) { 
               console.log("-------- exchnage convert ------")
-              console.log(e)
+                process.exit()
             }
           }
 

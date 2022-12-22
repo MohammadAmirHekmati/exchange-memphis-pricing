@@ -1,28 +1,34 @@
-import { DynamicModule, Module, Provider } from '@nestjs/common';
-import { createClient } from 'redis';
+import {
+  CacheModule as BaseCashModule,
+  DynamicModule,
+  Module,
+} from '@nestjs/common';
 import { RedisService } from './redis.service';
+import { RedisPlusService } from "./redis-plus.service";
+
+
+const redisStore = require('cache-manager-ioredis');
+
 
 @Module({})
 export class RedisModule {
-    static register():DynamicModule{
-        const connectionProvider:Provider={
-            provide:"REDIS_CLIENT",
-            useFactory:async ()=>{
-                const client = createClient({url: 'redis://localhost:6379',database:0});
-
-                client.on('error', (err) => console.log('Redis Client Error', err));
-
-                    await client.connect();
-                    return client
-            }
-        }
-
-        const dynamicModule:DynamicModule={
-            module:RedisModule,
-            providers:[RedisService,connectionProvider],
-            exports:[RedisService,connectionProvider],
-            global:true
-        }
-            return dynamicModule
-    }
+  static forRoot(host?: string, port?: number): DynamicModule {
+    return {
+      imports: [
+        BaseCashModule.registerAsync({
+          useFactory: () => {
+            return {
+              store: redisStore,
+              host: host || '127.0.0.1',
+              port: port || 6379,
+            };
+          },
+        }),
+      ],
+      module: RedisModule,
+      providers: [RedisService , RedisPlusService],
+      exports: [RedisService, BaseCashModule ,RedisPlusService],
+      global:true
+    };
+  }
 }

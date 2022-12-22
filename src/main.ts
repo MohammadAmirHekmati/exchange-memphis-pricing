@@ -8,6 +8,6 @@ async function bootstrap() {
     console.log("--------- im here --------")
     console.log(e)
   })
-  await app.listen(4000);
+  await app.listen(8000);
 }
 bootstrap();

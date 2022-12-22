@@ -1,6 +1,8 @@
 import { Injectable, OnModuleInit } from "@nestjs/common";
 import { Cron, CronExpression, Interval } from "@nestjs/schedule";
 import { GlobalService } from "src/global/global.service";
+import { RedisOriginService } from "src/origin-redis/redis.origin.service";
+import { RedisPlusService } from "src/redis/redis-plus.service";
 import { RedisService } from "src/redis/redis.service";
 import { CryptoPricingService } from "./crypto.pricing.service";
 import { CryptoEnt } from "./dto/crypto.entity";
@@ -15,7 +17,7 @@ export class BotManualCoinsService implements OnModuleInit{
     cryptoLists:CryptoEnt[]=[]
     poolRedis=[]
     PREFIX_PRICE_EXCHANGE_CRYPTO="prefix_price_exchange_crypto_"
-    constructor(private redisService:RedisService,
+    constructor(private redisService:RedisOriginService,
         private globalService:GlobalService,
         private cryptoPricingService:CryptoPricingService){
         }
@@ -24,7 +26,7 @@ export class BotManualCoinsService implements OnModuleInit{
         const manualCoins=res.filter(item=>item.type_get_price==TypePriceCryptoEnum.MANUAL)
         this.cryptoLists=this.cryptoLists.concat(res)
         for (let index = 0; index < manualCoins.length ;index++) {
-            const getKeysOfRedis=await this.redisService.multiGet(`${this.PREFIX_PRICE_EXCHANGE_CRYPTO}${manualCoins[index].symbol_crypto.toLowerCase()}*`)
+            const getKeysOfRedis=await this.redisService.multiGetKeys(`${this.PREFIX_PRICE_EXCHANGE_CRYPTO}${manualCoins[index].symbol_crypto.toLowerCase()}*`)
             this.cryptoManual=this.cryptoManual.concat(getKeysOfRedis)
         }
     }
@@ -36,7 +38,7 @@ export class BotManualCoinsService implements OnModuleInit{
      for (let count = 0 ; count < this.cryptoManual.length ; count++ ) {
       try {
         const row = this.cryptoManual[count]
-        const findExchnageOfRedis:RedisExchangeDto=await this.redisService.getKey(row)
+        const findExchnageOfRedis=<RedisExchangeDto>await this.redisService.getKey(row)
         const findFromCrypto=this.cryptoLists.find(item=>item.symbol_crypto.toLowerCase()==findExchnageOfRedis.from_crypto && item.type_get_price==TypePriceCryptoEnum.MANUAL)
         const findToCrypto=this.cryptoLists.find(item=>item.symbol_crypto.toLowerCase()==findExchnageOfRedis.to_crypto && item.type_get_price==TypePriceCryptoEnum.MANUAL)
         if(findFromCrypto)
@@ -50,7 +52,7 @@ export class BotManualCoinsService implements OnModuleInit{
 
           findExchnageOfRedis.from_price=result.toFixed(6)
           findExchnageOfRedis.from_decimal=findFromCrypto.decimal.toString()
-          await this.redisService.setKey(row,JSON.stringify(findExchnageOfRedis),-1)
+          await this.redisService.setKey(row,JSON.stringify(findExchnageOfRedis),0)
           const filter =this.poolRedis.filter(item=>item==row)
               if (filter.length==0) this.poolRedis.push(row)
         }
@@ -65,7 +67,7 @@ export class BotManualCoinsService implements OnModuleInit{
   
             findExchnageOfRedis.from_price=result.toFixed(6)
             findExchnageOfRedis.from_decimal=findToCrypto.decimal.toString()
-            await this.redisService.setKey(row,JSON.stringify(findExchnageOfRedis),-1)
+            await this.redisService.setKey(row,JSON.stringify(findExchnageOfRedis),0)
             const filter =this.poolRedis.filter(item=>item==row)
                 if (filter.length==0) this.poolRedis.push(row)
         }
@@ -80,7 +82,7 @@ export class BotManualCoinsService implements OnModuleInit{
         //   })
         //   const  pattern =`prefix_price_exchange_crypto_*${row.from_crypto.symbol_crypto.toLowerCase()}*`
   
-        //   const getKeys = await this.redisService.multiGet(pattern)
+        //   const getKeys = await this.redisPlusService.getKeys(pattern)
         //   for (let countKeys =0 ; countKeys < getKeys.length ; countKeys++) {
         //     const rowKeys = getKeys[countKeys]
         //     let key :RedisExchangeDto= <RedisExchangeDto>await this.redisService.getKey(rowKeys)
@@ -104,7 +106,7 @@ export class BotManualCoinsService implements OnModuleInit{
         //     result=result[item]
         //   })
         //   const  pattern =`prefix_price_exchange_crypto_*${row.to_crypto.symbol_crypto.toUpperCase()}*`
-        //   const getKeys = await this.redisService.multiGet(pattern)
+        //   const getKeys = await this.redisPlusService.getKeys(pattern)
         //   for (let countKeys =0 ; countKeys < getKeys.length ; countKeys++) {
         //     const rowKeys = getKeys[countKeys]
         //     let key :RedisExchangeDto= <RedisExchangeDto>await this.redisService.getKey(rowKeys)
