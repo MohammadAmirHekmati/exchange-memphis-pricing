@@ -9,7 +9,7 @@ export class RedisPlusService {
 
   constructor() {
     this.ioRedis = new IoRedis({
-      port: 6389,
+      port: 6379,
       host: "192.168.10.200",
       // password: '',
       // db: 0

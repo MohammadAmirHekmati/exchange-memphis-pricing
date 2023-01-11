@@ -33,7 +33,7 @@ export class BotManualCoinsService implements OnModuleInit{
 
    
 
-    @Cron(CronExpression.EVERY_10_SECONDS)
+    @Cron(CronExpression.EVERY_10_MINUTES)
     async cronJObPriceManual() {
      for (let count = 0 ; count < this.cryptoManual.length ; count++ ) {
       try {
@@ -52,7 +52,7 @@ export class BotManualCoinsService implements OnModuleInit{
 
           findExchnageOfRedis.from_price=result.toFixed(6)
           findExchnageOfRedis.from_decimal=findFromCrypto.decimal.toString()
-          await this.redisService.setKey(row,JSON.stringify(findExchnageOfRedis),0)
+          await this.redisService.setKey(row,JSON.stringify(findExchnageOfRedis),999999)
           const filter =this.poolRedis.filter(item=>item==row)
               if (filter.length==0) this.poolRedis.push(row)
         }
@@ -67,7 +67,7 @@ export class BotManualCoinsService implements OnModuleInit{
   
             findExchnageOfRedis.from_price=result.toFixed(6)
             findExchnageOfRedis.from_decimal=findToCrypto.decimal.toString()
-            await this.redisService.setKey(row,JSON.stringify(findExchnageOfRedis),0)
+            await this.redisService.setKey(row,JSON.stringify(findExchnageOfRedis),999999)
             const filter =this.poolRedis.filter(item=>item==row)
                 if (filter.length==0) this.poolRedis.push(row)
         }

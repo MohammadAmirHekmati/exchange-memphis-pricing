@@ -11,10 +11,10 @@ export class MemphisConvertProducerService implements OnModuleInit,OnApplication
     convertProducerChannelThree:Producer
     convertProducerChannelFour:Producer
     async onModuleInit() {
-    //    await this.convertProducerConnection()
-    //    await this.convertProducerConnectionChannelTwo()
-    //    await this.convertProducerConnectionChannelThree()
-    //    await this.convertProducerConnectionChannelFour()
+       await this.convertProducerConnection()
+       await this.convertProducerConnectionChannelTwo()
+       await this.convertProducerConnectionChannelThree()
+       await this.convertProducerConnectionChannelFour()
     }
 
 

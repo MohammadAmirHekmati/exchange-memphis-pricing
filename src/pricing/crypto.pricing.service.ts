@@ -100,7 +100,7 @@ export class CryptoPricingService implements OnModuleInit{
            if (findedExchangeDto.exchange_type.includes(ExchangeTypeEnum.CONVERT))
              await this.sendToAllPriceCryptoConvert(findedExchangeDto)
      
-           await this.redisService.setKey(exchangeOfRedis,JSON.stringify(findedExchangeDto),0)
+           await this.redisService.setKey(exchangeOfRedis,JSON.stringify(findedExchangeDto),999999)
          }
       }
 
@@ -121,7 +121,7 @@ export class CryptoPricingService implements OnModuleInit{
            if (findedExchangeDto.exchange_type.includes(ExchangeTypeEnum.CONVERT))
              await this.sendToAllPriceCryptoConvert(findedExchangeDto)
      
-           await this.redisService.setKey(exchangeOfRedis,JSON.stringify(findedExchangeDto),0)
+           await this.redisService.setKey(exchangeOfRedis,JSON.stringify(findedExchangeDto),999999)
          }
       }
 
@@ -142,7 +142,7 @@ export class CryptoPricingService implements OnModuleInit{
            if (findedExchangeDto.exchange_type.includes(ExchangeTypeEnum.CONVERT))
              await this.sendToAllPriceCryptoConvert(findedExchangeDto)
      
-           await this.redisService.setKey(exchangeOfRedis,JSON.stringify(findedExchangeDto),0)
+           await this.redisService.setKey(exchangeOfRedis,JSON.stringify(findedExchangeDto),999999)
          }
       }
 
@@ -163,7 +163,7 @@ export class CryptoPricingService implements OnModuleInit{
            if (findedExchangeDto.exchange_type.includes(ExchangeTypeEnum.CONVERT))
              await this.sendToAllPriceCryptoConvert(findedExchangeDto)
      
-           await this.redisService.setKey(exchangeOfRedis,JSON.stringify(findedExchangeDto),0)
+           await this.redisService.setKey(exchangeOfRedis,JSON.stringify(findedExchangeDto),999999)
          }
       }
       
@@ -183,39 +183,50 @@ export class CryptoPricingService implements OnModuleInit{
                 to_decimal: redisPrice.to_decimal,
                 channel: redisPrice.channel
               }
+              
                 if (redisPrice.from_price != '0' && redisPrice.to_price != '0') {
-                  let percentBuyFinal:string
-                  let percentSellFinal:string
+                  // if(redisPrice.from_crypto.toUpperCase()=="USDT")
+                  // {
+                  //   console.log(redisPrice.equal_buy)
+                  //   console.log(redisPrice.equal_sale)
+                  // }
                   const equal = PublicFunc.divide(bigDecimal.divide(redisPrice.from_price, redisPrice.to_price, 18), Number(redisPrice.to_decimal))
+                  if(redisPrice.equal_buy=="0")
+                  priceSendToAllRQ.sale_to_exchange=equal
+
+                  if(redisPrice.equal_sale=="0")
+                  priceSendToAllRQ.buy_from_exchange=equal
+
                   if(redisPrice.equal_sale!=="0")
                   {
-                    const percentBuy = bigDecimal.divide(redisPrice.equal_buy, 100, 2)
+                    
+                    const percentBuy = bigDecimal.divide(redisPrice.equal_sale, 100, 5)
                     const buy = PublicFunc.divide(bigDecimal.add(equal, bigDecimal.multiply(equal, percentBuy)), Number(redisPrice.to_decimal))
-                    percentSellFinal=buy
+                    priceSendToAllRQ.buy_from_exchange=buy
                   }
+
                   if(redisPrice.equal_buy!=="0")
                   {  
-                    const percentSale = bigDecimal.divide(redisPrice.equal_sale, 100, 2)
+                    const percentSale = bigDecimal.divide(redisPrice.equal_buy, 100, 5)
                     const sale = PublicFunc.divide(bigDecimal.add(equal, bigDecimal.negate(bigDecimal.multiply(equal, percentSale))), Number(redisPrice.to_decimal))
-                    percentBuyFinal=sale
+                    priceSendToAllRQ.sale_to_exchange=sale
                   }
-                  percentBuyFinal?priceSendToAllRQ.sale_to_exchange=percentBuyFinal:priceSendToAllRQ.sale_to_exchange=equal
-                  percentSellFinal?priceSendToAllRQ.buy_from_exchange=percentSellFinal:priceSendToAllRQ.buy_from_exchange=equal
+
                   switch (priceSendToAllRQ.channel) {
                     case PriceStatusEnum.CHANNEL_1:
-                      // await this.memphisProducerService.produceOtc(priceSendToAllRQ)
+                      await this.memphisProducerService.produceOtc(priceSendToAllRQ)
                       break;
 
                       case PriceStatusEnum.CHANNEL_2:
-                      // await this.memphisProducerService.produceOtcChannelTwo(priceSendToAllRQ)
+                      await this.memphisProducerService.produceOtcChannelTwo(priceSendToAllRQ)
                       break;
 
                       case PriceStatusEnum.CHANNEL_3:
-                      // await this.memphisProducerService.produceOtcChannelThree(priceSendToAllRQ)
+                      await this.memphisProducerService.produceOtcChannelThree(priceSendToAllRQ)
                       break;
 
                       case PriceStatusEnum.CHANNEL_4:
-                        // await this.memphisProducerService.produceOtcChannelFour(priceSendToAllRQ)
+                        await this.memphisProducerService.produceOtcChannelFour(priceSendToAllRQ)
                       break;
                   }
                   
@@ -245,19 +256,19 @@ export class CryptoPricingService implements OnModuleInit{
                 }
                 switch (convertPriceDto.channel) {
                     case PriceStatusEnum.CHANNEL_1:
-                      // await this.memphisConvertProducer.produceConvert(convertPriceDto)
+                      await this.memphisConvertProducer.produceConvert(convertPriceDto)
                       break;
 
                       case PriceStatusEnum.CHANNEL_2:
-                      // await this.memphisConvertProducer.produceConvertChannelTwo(convertPriceDto)
+                      await this.memphisConvertProducer.produceConvertChannelTwo(convertPriceDto)
                       break;
                       
                       case PriceStatusEnum.CHANNEL_3:
-                      // await this.memphisConvertProducer.produceConvertChannelThree(convertPriceDto)
+                      await this.memphisConvertProducer.produceConvertChannelThree(convertPriceDto)
                       break;
 
                       case PriceStatusEnum.CHANNEL_4:
-                        // await this.memphisConvertProducer.produceConvertChannelFour(convertPriceDto)
+                        await this.memphisConvertProducer.produceConvertChannelFour(convertPriceDto)
                       break;
                   }}
 
@@ -272,19 +283,19 @@ export class CryptoPricingService implements OnModuleInit{
                 }
                 switch (convertPriceDto.channel) {
                     case PriceStatusEnum.CHANNEL_1:
-                      // await this.memphisConvertProducer.produceConvert(convertPriceDto)
+                      await this.memphisConvertProducer.produceConvert(convertPriceDto)
                       break;
 
                       case PriceStatusEnum.CHANNEL_2:
-                      // await this.memphisConvertProducer.produceConvertChannelTwo(convertPriceDto)
+                      await this.memphisConvertProducer.produceConvertChannelTwo(convertPriceDto)
                       break;
                       
                       case PriceStatusEnum.CHANNEL_3:
-                      // await this.memphisConvertProducer.produceConvertChannelThree(convertPriceDto)
+                      await this.memphisConvertProducer.produceConvertChannelThree(convertPriceDto)
                       break;
 
                       case PriceStatusEnum.CHANNEL_4:
-                        // await this.memphisConvertProducer.produceConvertChannelFour(convertPriceDto)
+                        await this.memphisConvertProducer.produceConvertChannelFour(convertPriceDto)
                       break;
                   }}
                   }

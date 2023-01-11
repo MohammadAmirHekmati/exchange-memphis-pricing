@@ -11,10 +11,10 @@ export class MemphisProducerService implements OnModuleInit,OnApplicationShutdow
     otcProducerChannelThree:Producer
     otcProducerChannelFour:Producer
     async onModuleInit() {
-    //    await this.otcProducerConnection()
-    //    await this.otcProducerConnectionChannelTwo()
-    //    await this.otcProducerConnectionChannelThree()
-    //    await this.otcProducerConnectionChannelFour()
+       await this.otcProducerConnection()
+       await this.otcProducerConnectionChannelTwo()
+       await this.otcProducerConnectionChannelThree()
+       await this.otcProducerConnectionChannelFour()
     }
 
     async otcProducerConnection(){

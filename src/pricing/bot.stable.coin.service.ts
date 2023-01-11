@@ -39,7 +39,7 @@ export class BotStableCoinService implements OnModuleInit{
           } else {
             resultGetKey.to_price='1'
           }
-         await this.redisService.setKey(rowKeys ,JSON.stringify(resultGetKey) ,0)
+         await this.redisService.setKey(rowKeys ,JSON.stringify(resultGetKey) ,999999)
          if (resultGetKey.exchange_type.includes(ExchangeTypeEnum.OTC))
         await this.cryptoPricingService.sendToAllPriceCryptoOtc(resultGetKey)
 

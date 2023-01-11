@@ -7,6 +7,6 @@ import { RedisModule } from './redis/redis.module';
 import { GlobalModule } from './global/global.module';
 
 @Module({
-  imports: [RedisModule.forRoot("192.168.10.200",6389),ScheduleModule.forRoot(),PricingModule,MemphisModule, GlobalModule],
+  imports: [RedisModule.forRoot("192.168.10.200",6379),ScheduleModule.forRoot(),PricingModule,MemphisModule, GlobalModule],
 })
 export class AppModule {}

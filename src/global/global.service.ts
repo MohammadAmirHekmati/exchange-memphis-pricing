@@ -27,10 +27,14 @@ export class GlobalService{
     async priceIrr():Promise<number>
      {
         try {
-            const priceRq=await axios.get(`https://data.tetherland.com/api/v4/currencies-list`)
+         // https://api.tetherland.com/currencies
+         // https://data.tetherland.com/api/v4/currencies-list
+            const priceRq=await axios.get(`https://api.tetherland.com/currencies`)
         const result=priceRq.data
-        // console.log(result)
-        const tetherPrice=result.data.currencies.find(item=>item.name=='Tether' && item.symbol=='USDT').toman_amount
+        console.log("----- request price irr -----")
+        console.log(result)
+      //   const tetherPrice=result.data.currencies.find(item=>item.name=='Tether' && item.symbol=='USDT').toman_amount
+      const tetherPrice=result.data.currencies.USDT.price
            return tetherPrice * 10 
         } catch (error) {
             console.log("-------- request Price IRR ----------")
