@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { GlobalService } from "src/global/global.service";
+import { RedisPlusService } from "src/redis/redis-plus.service";
 import { RedisService } from "src/redis/redis.service";
 import { CryptoPricingService } from "./crypto.pricing.service";
 import { CryptoEnt } from "./dto/crypto.entity";
@@ -13,7 +14,8 @@ export class BotStableCoinService implements OnModuleInit{
     PREFIX_PRICE_EXCHANGE_CRYPTO="prefix_price_exchange_crypto_"
     constructor(private redisService:RedisService,
         private globalService:GlobalService,
-        private cryptoPricingService:CryptoPricingService){}
+        private cryptoPricingService:CryptoPricingService,
+        private redisPlusService:RedisPlusService){}
     async onModuleInit() {
         const result=await this.globalService.cryptoList()
         const stableCoins=result.filter(item=>item.stable_coin==true)
@@ -26,7 +28,7 @@ export class BotStableCoinService implements OnModuleInit{
     for(let count = 0 ; count < lenStableCoins ; count++) {
       const row = this.cryptoEntLists[count]
       const  pattern =`${this.PREFIX_PRICE_EXCHANGE_CRYPTO}*${row.symbol_crypto.toLowerCase()}*`
-      const resultKeys =await this.redisService.multiGet(pattern)
+      const resultKeys =await this.redisPlusService.getKeys(pattern)
       const lenKeys = resultKeys.length
       for (let countPattern =0 ;  countPattern < lenKeys;countPattern++ ) {
         const rowKeys = resultKeys[countPattern]

@@ -14,7 +14,7 @@ export class GlobalService{
 
     async cryptoList():Promise<CryptoEnt[]>{
        try {
-        const cryptoListReq=await axios.get("http://localhost:42621/api/v1/crypto/list/cryptos")
+        const cryptoListReq=await axios.get("https://apiplus.novintex.com/api/v1/crypto/list/cryptos")
         const responseAxios:ResponseCrypto=cryptoListReq.data
         const cryptoList:CryptoEnt[]=responseAxios.data
         return cryptoList
@@ -23,4 +23,20 @@ export class GlobalService{
         console.log(error)
        }
     }
+
+    async priceIrr():Promise<number>
+     {
+        try {
+            const priceRq=await axios.get(`https://api.tetherland.com/currencies`)
+        const result=priceRq.data
+        console.log(result)
+        const tetherPrice=result.data.currencies.USDT.price
+        console.log(tetherPrice)
+      //   find(item=>item.name=='Tether' && item.symbol=='USDT').toman_amount
+           return tetherPrice * 10 
+        } catch (error) {
+            console.log("-------- request Price IRR ----------")
+            console.log(error)
+        }
+     }
 }
