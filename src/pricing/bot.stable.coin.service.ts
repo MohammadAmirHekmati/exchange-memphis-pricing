@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { GlobalService } from "src/global/global.service";
+import { RedisOriginService } from "src/origin-redis/redis.origin.service";
 import { RedisPlusService } from "src/redis/redis-plus.service";
 import { RedisService } from "src/redis/redis.service";
 import { CryptoPricingService } from "./crypto.pricing.service";
@@ -12,7 +13,7 @@ import { ExchangeTypeEnum } from "./enums/exchange.type.enum";
 export class BotStableCoinService implements OnModuleInit{
     cryptoEntLists:CryptoEnt[]=[]
     PREFIX_PRICE_EXCHANGE_CRYPTO="prefix_price_exchange_crypto_"
-    constructor(private redisService:RedisService,
+    constructor(private redisService:RedisOriginService,
         private globalService:GlobalService,
         private cryptoPricingService:CryptoPricingService,
         private redisPlusService:RedisPlusService){}
@@ -28,7 +29,7 @@ export class BotStableCoinService implements OnModuleInit{
     for(let count = 0 ; count < lenStableCoins ; count++) {
       const row = this.cryptoEntLists[count]
       const  pattern =`${this.PREFIX_PRICE_EXCHANGE_CRYPTO}*${row.symbol_crypto.toLowerCase()}*`
-      const resultKeys =await this.redisPlusService.getKeys(pattern)
+      const resultKeys =await this.redisService.multiGetKeys(pattern)
       const lenKeys = resultKeys.length
       for (let countPattern =0 ;  countPattern < lenKeys;countPattern++ ) {
         const rowKeys = resultKeys[countPattern]
@@ -39,7 +40,7 @@ export class BotStableCoinService implements OnModuleInit{
           } else {
             resultGetKey.to_price='1'
           }
-         await this.redisService.setKey(rowKeys ,JSON.stringify(resultGetKey) ,0)
+         await this.redisService.setKey(rowKeys ,JSON.stringify(resultGetKey) ,999999)
          if (resultGetKey.exchange_type.includes(ExchangeTypeEnum.OTC))
         await this.cryptoPricingService.sendToAllPriceCryptoOtc(resultGetKey)
 
